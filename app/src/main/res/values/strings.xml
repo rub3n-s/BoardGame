@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Board Game</string>
+    <string name="play">Play</string>
+    <string name="top5">Top5</string>
+    <string name="leave">Leave</string>
+    <string name="name">Name</string>
+    <string name="name_hint">Player Name</string>
+    <string name="confirm">Confirm</string>
+    <string name="game_seconds">Time left:</string>
+    <string name="game_player">Player:</string>
+    <string name="game_points">Points:</string>
+    <string name="game_level">Level:</string>
+    <string name="game_end">End Game</string>
+</resources>

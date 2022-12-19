@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "536145238931",
+    "project_id": "boardgame-2b640",
+    "storage_bucket": "boardgame-2b640.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:536145238931:android:0264ac1f391f39171c2666",
+        "android_client_info": {
+          "package_name": "pt.isec.boardgame"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "536145238931-9134rhusv76vp4l7oqs2ev3db3u68dkm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "pt.isec.boardgame",
+            "certificate_hash": "3746e1cc7caaad2baa6aadf318ab01c9817ca18f"
+          }
+        },
+        {
+          "client_id": "536145238931-2t1v23rium9hnejm289699fqsipaqned.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCXbLodNS7L0ghv5o0X9pvc37cCGw9gkt0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "536145238931-2t1v23rium9hnejm289699fqsipaqned.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

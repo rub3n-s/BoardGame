@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Top5Activity">
+
+    <TextView
+        android:id="@+id/tvTop1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="tvTop1"
+        android:textSize="25sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/guideline3" />
+
+    <TextView
+        android:id="@+id/tvTop2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="35dp"
+        android:text="tvTop2"
+        android:textSize="25sp"
+        app:layout_constraintStart_toStartOf="@+id/tvTop1"
+        app:layout_constraintTop_toBottomOf="@+id/tvTop1" />
+
+    <TextView
+        android:id="@+id/tvTop3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="35dp"
+        android:text="tvTop3"
+        android:textSize="25sp"
+        app:layout_constraintStart_toStartOf="@+id/tvTop2"
+        app:layout_constraintTop_toBottomOf="@+id/tvTop2" />
+
+    <TextView
+        android:id="@+id/tvTop4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="35dp"
+        android:text="tvTop4"
+        android:textSize="25sp"
+        app:layout_constraintStart_toStartOf="@+id/tvTop3"
+        app:layout_constraintTop_toBottomOf="@+id/tvTop3" />
+
+    <TextView
+        android:id="@+id/tvTop5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="35dp"
+        android:text="tvTop5"
+        android:textSize="25sp"
+        app:layout_constraintStart_toStartOf="@+id/tvTop4"
+        app:layout_constraintTop_toBottomOf="@+id/tvTop4" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.31" />
+</androidx.constraintlayout.widget.ConstraintLayout>
