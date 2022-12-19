@@ -16,10 +16,8 @@ class PlayerActivity : AppCompatActivity() {
             val playerName = findViewById<EditText>(R.id.etPlayerName).text
             if (playerName == null || playerName.isEmpty())
                 Toast.makeText(applicationContext,"You need to insert a player name",Toast.LENGTH_LONG).show()
-            else {
-                findViewById<EditText>(R.id.etPlayerName).clearComposingText()
+            else
                 startActivity(GameActivity.getClientModeIntent(this, playerName.toString()))
-            }
         }
     }
 }

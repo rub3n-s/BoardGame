@@ -5,6 +5,4 @@ class PlayerModel(
     val points: Int,
     val level: Int,
     val time: Long
-) {
-
-}
+)

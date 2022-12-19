@@ -142,6 +142,12 @@ class GameActivity : AppCompatActivity() {
         //for (i in 1..5) addDataToFirestore(i)
     }
 
+    // Minimize this activity instead of going back so PlayerActivity
+    @Deprecated("Deprecated in Java", ReplaceWith("moveTaskToBack(true)"))
+    override fun onBackPressed() {
+        moveTaskToBack(true)
+    }
+
     private fun nextLevel() {
         level++
         defineValues()
@@ -153,8 +159,8 @@ class GameActivity : AppCompatActivity() {
             1 -> {
                 minInterval = 0
                 maxInterval = 9
-                levelSeconds = 70000
-                //levelSeconds = 10000
+                //levelSeconds = 70000
+                levelSeconds = 10000
                 bonus = 3
                 operators.add('+')
             }
