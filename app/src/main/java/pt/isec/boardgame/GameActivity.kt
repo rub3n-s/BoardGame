@@ -60,11 +60,12 @@ class GameActivity : AppCompatActivity() {
     private var random = Random(123456789L)
     private var minInterval = 0
     private var maxInterval = 0
-    private var levelSeconds = 0
+    private var levelSeconds : Long = 0
     private var operators : ArrayList<Char> = ArrayList()
     private var level = 1
     private var points = 0
-    private var bonus = 0
+    private var bonus : Long = 0
+    private var minRightExpressions = 0
     private var rightExpressions = 0
 
     // GridView Data
@@ -86,6 +87,7 @@ class GameActivity : AppCompatActivity() {
     // Level Time Limit CountDownTimer
     private lateinit var levelCountDownTimer : CountDownTimer
     private var levelTimerRunning = false
+    private var levelTimeLeftInMillis : Long = 0
 
     // Total played time
     private var totalTime : Long = 0
@@ -159,50 +161,43 @@ class GameActivity : AppCompatActivity() {
             1 -> {
                 minInterval = 0
                 maxInterval = 9
-                //levelSeconds = 70000
-                levelSeconds = 10000
-                bonus = 3
+                levelSeconds = 70000
+                //levelSeconds = 10000
+                bonus = 3000
                 operators.add('+')
+                minRightExpressions = 5
             }
             2 -> {
                 minInterval = 0
                 maxInterval = 99
                 //levelSeconds = 60000
-                levelSeconds = 10000
-                bonus = 5
+                levelSeconds = 20000
+                bonus = 5000
                 operators.add('-')
+                minRightExpressions = 4
             }
             3 -> {
                 minInterval = 0
                 maxInterval = 999
                 //levelSeconds = 50000
-                levelSeconds = 10000
-                bonus = 7
+                levelSeconds = 20000
+                bonus = 7000
                 operators.add('*')
+                minRightExpressions = 3
             }
             4 -> {
                 minInterval = 0
                 maxInterval = 9999
                 //levelSeconds = 40000
-                levelSeconds = 10000
-                bonus = 10
+                levelSeconds = 20000
+                bonus = 10000
                 operators.add('/')
+                minRightExpressions = 2
             }
         }
 
-        // Clear GridView data
-        itemsArray.clear()
-        linesValues.clear()
-        columnsValues.clear()
-
         // Fill array with new values
         fillArray()
-
-        // Insert new data into GridView
-        itemGVAdapter = GridViewAdapter(itemsArray,this@GameActivity)
-
-        // Set adapter to GridView
-        itemsGV.adapter = itemGVAdapter
 
         // Display data in TextViews
         findViewById<TextView>(R.id.tvTimeLeft).text = ""
@@ -212,6 +207,12 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun fillArray() {
+        // Clear GridView data
+        itemsArray.clear()
+        linesValues.clear()
+        columnsValues.clear()
+
+        // Create temporary variables to store random values
         var tmp : Any
         val tmpArray : ArrayList<Any> = ArrayList()
 
@@ -263,6 +264,12 @@ class GameActivity : AppCompatActivity() {
             column++
             counter = 0
         }
+
+        // Insert new data into GridView
+        itemGVAdapter = GridViewAdapter(itemsArray,this@GameActivity)
+
+        // Set adapter to GridView
+        itemsGV.adapter = itemGVAdapter
 
         for (m in 0 until linesValues.size) Log.i(TAG, "fillArray: line[$m] = ${linesValues[m]}")
         for (n in 0 until columnsValues.size) Log.i(TAG, "fillArray: column[$n] = ${columnsValues[n]}")
@@ -375,31 +382,50 @@ class GameActivity : AppCompatActivity() {
             itemGVAdapter.notifyDataSetChanged()
 
             Handler().postDelayed({
-                itemGVAdapter.clearSelectedPositions()
+                // Verify if is the highest value or the second highest
+                val tmpPoints = getPoints(linesValues[swipedLine])
+                points += tmpPoints
+                findViewById<TextView>(R.id.tvPoints).text = points.toString()
 
-                // Notify that data has been change in the adapter class
-                itemGVAdapter.notifyDataSetChanged()
+                // Display message
+                Log.i(TAG, "swipedLine: $swipedLine")
+                var message = "swipedLine[$swipedLine] = ${linesValues[swipedLine]} "
+                if (tmpPoints == 2)
+                    message += ". Highest value"
+                else if (tmpPoints == 1)
+                    message += ". Second highest value"
+
+                // If the client gets a right expression
+                if (tmpPoints > 0) {
+                    rightExpressions++
+                    levelTimeLeftInMillis += bonus
+                    if (levelTimeLeftInMillis > levelSeconds) levelTimeLeftInMillis = levelSeconds
+
+                    // Set new values for the line
+                    for (i in 0 until selectedPositions.size) {
+                        if (i == 1 || i == 3)
+                            itemsArray[selectedPositions[i]] = randomOperator()
+                        else
+                            itemsArray[selectedPositions[i]] = randomNumber()
+                    }
+
+                    // Fill the array again with random values
+                    fillArray()
+                } else {
+                    // Clear the painted positions on the GridView Adapter
+                    itemGVAdapter.clearSelectedPositions()
+
+                    // Notify that data has been change in the adapter class
+                    itemGVAdapter.notifyDataSetChanged()
+                }
+
+                // Display message
+                Toast.makeText(
+                    applicationContext,
+                    message,
+                    Toast.LENGTH_SHORT
+                ).show()
             }, 1200)
-
-            // Verify if is the highest value or the second highest
-            val tmpPoints = getPoints(linesValues[swipedLine])
-            points += tmpPoints
-            findViewById<TextView>(R.id.tvPoints).text = points.toString()
-
-            // Display message
-            Log.i(TAG, "swipedLine: $swipedLine")
-            var message = "swipedLine[$swipedLine] = ${linesValues[swipedLine]} "
-            if (tmpPoints == 2)
-                message += ". Highest value"
-            else if (tmpPoints == 1)
-                message += ". Second highest value"
-
-            // Display message
-            Toast.makeText(
-                applicationContext,
-                message,
-                Toast.LENGTH_SHORT
-            ).show()
         }
     }
 
@@ -439,32 +465,106 @@ class GameActivity : AppCompatActivity() {
             itemGVAdapter.notifyDataSetChanged()
 
             Handler().postDelayed({
-                itemGVAdapter.clearSelectedPositions()
+                // Verify if is the highest value or the second highest
+                val tmpPoints = getPoints(columnsValues[swipedColumn])
+                points += tmpPoints
+                findViewById<TextView>(R.id.tvPoints).text = points.toString()
 
-                // Notify that data has been change in the adapter class
-                itemGVAdapter.notifyDataSetChanged()
+                // Display message
+                Log.i(TAG, "swipedColumn: $swipedColumn")
+                var message = "swipedColumn[$swipedColumn] = ${columnsValues[swipedColumn]} "
+                if (tmpPoints == 2)
+                    message += ". Highest value"
+                else if (tmpPoints == 1)
+                    message += ". Second highest value"
+
+                // If the client gets a right expression
+                if (tmpPoints > 0) {
+                    rightExpressions++
+                    levelTimeLeftInMillis += bonus
+                    if (levelTimeLeftInMillis > levelSeconds) levelTimeLeftInMillis = levelSeconds
+
+                    // Set new values for the column
+                    for (i in 0 until selectedPositions.size) {
+                        if (i == 1 || i == 3)
+                            itemsArray[selectedPositions[i]] = randomOperator()
+                        else
+                            itemsArray[selectedPositions[i]] = randomNumber()
+                    }
+
+                    // Fill the array again with random values
+                    fillArray()
+                } else {
+                    // Clear the painted positions on the GridView Adapter
+                    itemGVAdapter.clearSelectedPositions()
+
+                    // Notify that data has been change in the adapter class
+                    itemGVAdapter.notifyDataSetChanged()
+                }
+
+                Toast.makeText(
+                    applicationContext,
+                    message,
+                    Toast.LENGTH_SHORT
+                ).show()
             }, 1200)
-
-            // Verify if is the highest value or the second highest
-            val tmpPoints = getPoints(columnsValues[swipedColumn])
-            points += tmpPoints
-            findViewById<TextView>(R.id.tvPoints).text = points.toString()
-
-            // Display message
-            Log.i(TAG, "swipedColumn: $swipedColumn")
-            var message = "swipedColumn[$swipedColumn] = ${columnsValues[swipedColumn]} "
-            if (tmpPoints == 2)
-                message += ". Highest value"
-            else if (tmpPoints == 1)
-                message += ". Second highest value"
-
-            Toast.makeText(
-                applicationContext,
-                message,
-                Toast.LENGTH_SHORT
-            ).show()
         }
     }
+
+    /*private fun recalcLineValues() {
+        val tmpArray : ArrayList<Any> = ArrayList()
+        var counter = 0
+        linesValues.clear()
+        for (i in 0 until LINES) {
+            for (j in 0 until COLUMNS) {
+                tmpArray.add(itemsArray[counter])
+                counter++
+            }
+            // Calculate line
+            if (i == 1 || i == 3)
+                linesValues.add(-1.0f)
+            else
+                linesValues.add(calculate(tmpArray))
+            tmpArray.clear()
+        }
+
+        // Insert new data into GridView
+        itemGVAdapter = GridViewAdapter(itemsArray,this@GameActivity)
+
+        // Set adapter to GridView
+        itemsGV.adapter = itemGVAdapter
+    }
+
+    private fun recalcColumnValues() {
+        val tmpArray : ArrayList<Any> = ArrayList()
+        var column = 0
+        var counter = 0
+        columnsValues.clear()
+        while (column < 5) {
+            for (i in 0 until LINES) {
+                for (j in 0 until COLUMNS) {
+                    if (j == column) {
+                        tmpArray.add(itemsArray[counter])
+                    }
+                    counter++
+                }
+            }
+            // Calculate column
+            if (column == 1 || column == 3)
+                columnsValues.add(-1.0f)
+            else
+                columnsValues.add(calculate(tmpArray))
+            tmpArray.clear()
+            column++
+            counter = 0
+        }
+
+        // Insert new data into GridView
+        itemGVAdapter = GridViewAdapter(itemsArray,this@GameActivity)
+
+        // Set adapter to GridView
+        itemsGV.adapter = itemGVAdapter
+    } */
 
     private fun getPoints(value: Float) : Int {
         // Create a tmp array
@@ -644,17 +744,24 @@ class GameActivity : AppCompatActivity() {
             override fun onTick(millisUntilFinished : Long) {
                 findViewById<TextView>(R.id.tvTimeLeft).text = "${millisUntilFinished / 1000 + 1}"
                 levelTimerRunning = true
+                levelTimeLeftInMillis = millisUntilFinished
             }
 
             override fun onFinish() {
                 findViewById<TextView>(R.id.tvTimeLeft).text = "0"
                 levelTimerRunning = false
 
-                // Set the new level values
-                nextLevel()
+                // If the client don't get the minimum right expressions, go back go level 1
+                if (rightExpressions < minRightExpressions) {
+                    level = 1
+                    defineValues()
+                } else {
+                    // Set the new level values
+                    nextLevel()
 
-                // Display Transition Alert
-                displayAlertDialog()
+                    // Display Transition Alert
+                    displayAlertDialog()
+                }
             }
         }.start()
     }
