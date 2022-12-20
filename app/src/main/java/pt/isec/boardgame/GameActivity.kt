@@ -67,6 +67,7 @@ class GameActivity : AppCompatActivity() {
     private var bonus : Long = 0
     private var minRightExpressions = 0
     private var rightExpressions = 0
+    private var lost = false
 
     // GridView Data
     private var itemsArray : ArrayList<Any> = ArrayList()
@@ -196,6 +197,9 @@ class GameActivity : AppCompatActivity() {
             }
         }
 
+        // Define the level time limit
+        levelTimeLeftInMillis = levelSeconds
+
         // Fill array with new values
         fillArray()
 
@@ -290,6 +294,7 @@ class GameActivity : AppCompatActivity() {
     //              GridView Gesture Listener
     // ==================================================
     override fun onTouchEvent(event: MotionEvent?): Boolean {
+        // Call onTouchEvent
         detector.onTouchEvent(event!!)
         return super.onTouchEvent(event)
     }
@@ -298,7 +303,6 @@ class GameActivity : AppCompatActivity() {
         override fun onDown(event: MotionEvent): Boolean {
             return true
         }
-
         override fun onFling(
             event1: MotionEvent, event2: MotionEvent,
             velocityX: Float, velocityY: Float
@@ -308,17 +312,17 @@ class GameActivity : AppCompatActivity() {
             if (abs(diffX) > abs(diffY)) {
                 if (abs(diffX) > SWIPE_THRESHOLD && abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
                     if (diffX > 0) {
-                        onSwipeRight(event1.y,event2.y)
+                        if (!lost) onSwipeRight(event1.y,event2.y)
                     } else {
-                        onSwipeLeft(event1.y,event2.y)
+                        if (!lost) onSwipeLeft(event1.y,event2.y)
                     }
                 }
             } else {
                 if (abs(diffY) > SWIPE_THRESHOLD && abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
                     if (diffY > 0) {
-                        onSwipeBottom(event1.x,event2.x)
+                        if (!lost) onSwipeBottom(event1.x,event2.x)
                     } else {
-                        onSwipeTop(event1.x,event2.x)
+                        if (!lost) onSwipeTop(event1.x,event2.x)
                     }
                 }
             }
@@ -374,31 +378,34 @@ class GameActivity : AppCompatActivity() {
         }
 
         if (swipedLine > -1) {
+            var message: String
+
+            // Verify if is the highest value or the second highest
+            val tmpPoints = getPoints(linesValues[swipedLine])
+
             // Get cells position
             val selectedPositions = getLineCellsPosition(swipedLine)
-            itemGVAdapter.selectedPositions(selectedPositions)
 
-            // Notify that data has been change in the adapter class
-            itemGVAdapter.notifyDataSetChanged()
+            // If the client gets a right expression
+            if (tmpPoints > 0) {
+                // Highlight the swiped cells (Color: BLUE = right answer)
+                itemGVAdapter.selectedPositions(selectedPositions, true)
 
-            Handler().postDelayed({
-                // Verify if is the highest value or the second highest
-                val tmpPoints = getPoints(linesValues[swipedLine])
-                points += tmpPoints
-                findViewById<TextView>(R.id.tvPoints).text = points.toString()
+                // Notify that data has been change in the adapter class
+                itemGVAdapter.notifyDataSetChanged()
 
-                // Display message
-                Log.i(TAG, "swipedLine: $swipedLine")
-                var message = "swipedLine[$swipedLine] = ${linesValues[swipedLine]} "
-                if (tmpPoints == 2)
-                    message += ". Highest value"
-                else if (tmpPoints == 1)
-                    message += ". Second highest value"
+                // Cancel level timer
+                levelCountDownTimer.cancel()
 
-                // If the client gets a right expression
-                if (tmpPoints > 0) {
+                // Add bonus to timer
+                levelTimeLeftInMillis += bonus
+
+                Handler().postDelayed({
+                    // Increase points counter and update points TextView
+                    points += tmpPoints
+                    findViewById<TextView>(R.id.tvPoints).text = points.toString()
+
                     rightExpressions++
-                    levelTimeLeftInMillis += bonus
                     if (levelTimeLeftInMillis > levelSeconds) levelTimeLeftInMillis = levelSeconds
 
                     // Set new values for the line
@@ -411,21 +418,58 @@ class GameActivity : AppCompatActivity() {
 
                     // Fill the array again with random values
                     fillArray()
-                } else {
+
+                    // Start timer with new value
+                    levelCountDownTimer.start()
+
+                    // Display message
+                    Log.i(TAG, "swipedLine: $swipedLine")
+                    message = "swipedLine[$swipedLine] = ${linesValues[swipedLine]} "
+                    if (tmpPoints == 2)
+                        message += ". Highest value"
+                    else if (tmpPoints == 1)
+                        message += ". Second highest value"
+
+                    // Display message
+                    Toast.makeText(
+                        applicationContext,
+                        message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }, 1000)
+            }
+            else {
+                // Highlight the swiped cells (Color: RED = wrong answer)
+                itemGVAdapter.selectedPositions(selectedPositions, false)
+
+                // Notify that data has been change in the adapter class
+                itemGVAdapter.notifyDataSetChanged()
+
+                // Set lost variable to true, prevents further GridView touch actions
+                lost = true
+
+                Handler().postDelayed({
                     // Clear the painted positions on the GridView Adapter
                     itemGVAdapter.clearSelectedPositions()
 
                     // Notify that data has been change in the adapter class
                     itemGVAdapter.notifyDataSetChanged()
-                }
 
-                // Display message
-                Toast.makeText(
-                    applicationContext,
-                    message,
-                    Toast.LENGTH_SHORT
-                ).show()
-            }, 1200)
+                    // Cancel level timer
+                    levelCountDownTimer.cancel()
+
+                    // Display invalid answer message
+                    Log.i(TAG, "swipedLine: $swipedLine")
+                    message = "swipedLine[$swipedLine] = invalid answer"
+
+                    // Display message
+                    Toast.makeText(
+                        applicationContext,
+                        message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }, 1500)
+            }
         }
     }
 
@@ -457,34 +501,36 @@ class GameActivity : AppCompatActivity() {
         }
 
         if (swipedColumn > -1) {
+            var message: String
+
+            // Verify if is the highest value or the second highest
+            val tmpPoints = getPoints(columnsValues[swipedColumn])
+
             // Get cells position
             val selectedPositions = getColumnCellsPosition(swipedColumn)
-            itemGVAdapter.selectedPositions(selectedPositions)
 
-            // Notify that data has been change in the adapter class
-            itemGVAdapter.notifyDataSetChanged()
+            if (tmpPoints > 0) {
+                // Highlight the swiped cells (Color: BLUE = right answer)
+                itemGVAdapter.selectedPositions(selectedPositions, true)
 
-            Handler().postDelayed({
-                // Verify if is the highest value or the second highest
-                val tmpPoints = getPoints(columnsValues[swipedColumn])
-                points += tmpPoints
-                findViewById<TextView>(R.id.tvPoints).text = points.toString()
+                // Notify that data has been change in the adapter class
+                itemGVAdapter.notifyDataSetChanged()
 
-                // Display message
-                Log.i(TAG, "swipedColumn: $swipedColumn")
-                var message = "swipedColumn[$swipedColumn] = ${columnsValues[swipedColumn]} "
-                if (tmpPoints == 2)
-                    message += ". Highest value"
-                else if (tmpPoints == 1)
-                    message += ". Second highest value"
+                // Cancel level timer
+                levelCountDownTimer.cancel()
 
-                // If the client gets a right expression
-                if (tmpPoints > 0) {
+                // Add bonus to timer
+                levelTimeLeftInMillis += bonus
+
+                Handler().postDelayed({
+                    // Increase points counter and update points TextView
+                    points += tmpPoints
+                    findViewById<TextView>(R.id.tvPoints).text = points.toString()
+
                     rightExpressions++
-                    levelTimeLeftInMillis += bonus
                     if (levelTimeLeftInMillis > levelSeconds) levelTimeLeftInMillis = levelSeconds
 
-                    // Set new values for the column
+                    // Set new values for the line
                     for (i in 0 until selectedPositions.size) {
                         if (i == 1 || i == 3)
                             itemsArray[selectedPositions[i]] = randomOperator()
@@ -494,20 +540,57 @@ class GameActivity : AppCompatActivity() {
 
                     // Fill the array again with random values
                     fillArray()
-                } else {
+
+                    // Start timer with new value
+                    levelCountDownTimer.start()
+
+                    // Display message
+                    Log.i(TAG, "swipedColumn: $swipedColumn")
+                    message = "swipedColumn[$swipedColumn] = ${columnsValues[swipedColumn]} "
+                    if (tmpPoints == 2)
+                        message += ". Highest value"
+                    else if (tmpPoints == 1)
+                        message += ". Second highest value"
+
+                    // Display message
+                    Toast.makeText(
+                        applicationContext,
+                        message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }, 1000)
+            } else {
+                // Highlight the swiped cells (Color: RED = wrong answer)
+                itemGVAdapter.selectedPositions(selectedPositions, false)
+
+                // Notify that data has been change in the adapter class
+                itemGVAdapter.notifyDataSetChanged()
+
+                // Set lost variable to true, prevents further GridView touch actions
+                lost = true
+
+                Handler().postDelayed({
                     // Clear the painted positions on the GridView Adapter
                     itemGVAdapter.clearSelectedPositions()
 
                     // Notify that data has been change in the adapter class
                     itemGVAdapter.notifyDataSetChanged()
-                }
 
-                Toast.makeText(
-                    applicationContext,
-                    message,
-                    Toast.LENGTH_SHORT
-                ).show()
-            }, 1200)
+                    // Cancel level timer
+                    levelCountDownTimer.cancel()
+
+                    // Display invalid answer message
+                    Log.i(TAG, "swipedColumn: $swipedColumn")
+                    message = "swipedColumn[$swipedColumn] = invalid answer"
+
+                    // Display message
+                    Toast.makeText(
+                        applicationContext,
+                        message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }, 1500)
+            }
         }
     }
 
@@ -568,7 +651,7 @@ class GameActivity : AppCompatActivity() {
 
     private fun getPoints(value: Float) : Int {
         // Create a tmp array
-        val descendingValues : ArrayList<Float> = ArrayList()
+        var descendingValues : ArrayList<Float> = ArrayList()
 
         // Add values from columns and lines
         for (column in columnsValues) descendingValues.add(column)
@@ -578,9 +661,10 @@ class GameActivity : AppCompatActivity() {
         descendingValues.sortDescending()
 
         // Remove repeated values (if they exist)
-        descendingValues.toSet().toList()
+        descendingValues = descendingValues.distinct() as ArrayList<Float>
+        //descendingValues.toSet().toList()
 
-        // Verifiy if is the highest
+        // Verify if is the highest
         if (value == descendingValues[0])
             return 2    // 2 points for the highest
         else if (value == descendingValues[1])
@@ -739,7 +823,7 @@ class GameActivity : AppCompatActivity() {
     //          Level Time Limit CountDownTimer
     // ===================================================
     private fun startLevelTimer() {
-        levelCountDownTimer = object : CountDownTimer(levelSeconds.toLong(),1000) {
+        levelCountDownTimer = object : CountDownTimer(levelTimeLeftInMillis,1000) {
             @SuppressLint("SetTextI18n")
             override fun onTick(millisUntilFinished : Long) {
                 findViewById<TextView>(R.id.tvTimeLeft).text = "${millisUntilFinished / 1000 + 1}"

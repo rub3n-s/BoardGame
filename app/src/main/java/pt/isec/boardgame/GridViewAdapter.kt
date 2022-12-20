@@ -16,7 +16,8 @@ internal class GridViewAdapter(
     BaseAdapter() {
     private var layoutInflater: LayoutInflater? = null
     private lateinit var itemTV: TextView
-    var selectedPositions: ArrayList<Int> = ArrayList()
+    private var selectedPositions: ArrayList<Int> = ArrayList()
+    private var right : Boolean = false
 
     override fun getCount(): Int {
         return items.size
@@ -50,12 +51,21 @@ internal class GridViewAdapter(
 
         itemTV = convertView!!.findViewById(R.id.tvItem)
         itemTV.text = items[position].toString()
-        itemTV.setBackgroundColor(if (selectedPositions.contains(position)) Color.rgb(150,150,255) else Color.WHITE)
+        itemTV.setBackgroundColor(
+            if (selectedPositions.contains(position) && right)
+                Color.rgb(150,150,255)
+            else  if (selectedPositions.contains(position) && !right)
+                Color.rgb(255,150,150)
+            else Color.WHITE
+        )
 
         return convertView
     }
 
-    fun selectedPositions(array : ArrayList<Int>) { this.selectedPositions = array }
+    fun selectedPositions(array : ArrayList<Int>, right : Boolean) {
+        this.selectedPositions = array
+        this.right = right
+    }
 
     fun clearSelectedPositions() { this.selectedPositions.clear() }
 }
