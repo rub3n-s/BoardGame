@@ -54,7 +54,7 @@ internal class GridViewAdapter(
         itemTV.setBackgroundColor(
             if (selectedPositions.contains(position) && right)
                 Color.rgb(150,150,255)
-            else  if (selectedPositions.contains(position) && !right)
+            else if (selectedPositions.contains(position) && !right)
                 Color.rgb(255,150,150)
             else Color.WHITE
         )

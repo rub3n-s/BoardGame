@@ -399,28 +399,16 @@ class GameActivity : AppCompatActivity() {
 
                 // Add bonus to timer
                 levelTimeLeftInMillis += bonus
+                if (levelTimeLeftInMillis > levelSeconds) levelTimeLeftInMillis = levelSeconds
+
+                // Increase right answers
+                rightExpressions++
+
+                // Increase points counter and update points TextView
+                points += tmpPoints
 
                 Handler().postDelayed({
-                    // Increase points counter and update points TextView
-                    points += tmpPoints
                     findViewById<TextView>(R.id.tvPoints).text = points.toString()
-
-                    rightExpressions++
-                    if (levelTimeLeftInMillis > levelSeconds) levelTimeLeftInMillis = levelSeconds
-
-                    // Set new values for the line
-                    for (i in 0 until selectedPositions.size) {
-                        if (i == 1 || i == 3)
-                            itemsArray[selectedPositions[i]] = randomOperator()
-                        else
-                            itemsArray[selectedPositions[i]] = randomNumber()
-                    }
-
-                    // Fill the array again with random values
-                    fillArray()
-
-                    // Start timer with new value
-                    levelCountDownTimer.start()
 
                     // Display message
                     Log.i(TAG, "swipedLine: $swipedLine")
@@ -429,6 +417,12 @@ class GameActivity : AppCompatActivity() {
                         message += ". Highest value"
                     else if (tmpPoints == 1)
                         message += ". Second highest value"
+
+                    // Fill the array again with random values
+                    fillArray()
+
+                    // Start timer with new value
+                    levelCountDownTimer.start()
 
                     // Display message
                     Toast.makeText(
@@ -521,28 +515,16 @@ class GameActivity : AppCompatActivity() {
 
                 // Add bonus to timer
                 levelTimeLeftInMillis += bonus
+                if (levelTimeLeftInMillis > levelSeconds) levelTimeLeftInMillis = levelSeconds
+
+                // Increase right answers
+                rightExpressions++
+
+                // Increase points counter and update points TextView
+                points += tmpPoints
 
                 Handler().postDelayed({
-                    // Increase points counter and update points TextView
-                    points += tmpPoints
                     findViewById<TextView>(R.id.tvPoints).text = points.toString()
-
-                    rightExpressions++
-                    if (levelTimeLeftInMillis > levelSeconds) levelTimeLeftInMillis = levelSeconds
-
-                    // Set new values for the line
-                    for (i in 0 until selectedPositions.size) {
-                        if (i == 1 || i == 3)
-                            itemsArray[selectedPositions[i]] = randomOperator()
-                        else
-                            itemsArray[selectedPositions[i]] = randomNumber()
-                    }
-
-                    // Fill the array again with random values
-                    fillArray()
-
-                    // Start timer with new value
-                    levelCountDownTimer.start()
 
                     // Display message
                     Log.i(TAG, "swipedColumn: $swipedColumn")
@@ -551,6 +533,12 @@ class GameActivity : AppCompatActivity() {
                         message += ". Highest value"
                     else if (tmpPoints == 1)
                         message += ". Second highest value"
+
+                    // Fill the array again with random values
+                    fillArray()
+
+                    // Start timer with new value
+                    levelCountDownTimer.start()
 
                     // Display message
                     Toast.makeText(
