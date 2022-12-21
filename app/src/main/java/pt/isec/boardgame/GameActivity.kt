@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
@@ -89,6 +90,10 @@ class GameActivity : AppCompatActivity() {
     private lateinit var levelCountDownTimer : CountDownTimer
     private var levelTimerRunning = false
     private var levelTimeLeftInMillis : Long = 0
+
+    // Level Loss CountDownTimer
+    private lateinit var buttonLossOk : Button
+    private lateinit var alertLossCountDownTimer : CountDownTimer
 
     // Total played time
     private var totalTime : Long = 0
@@ -407,7 +412,7 @@ class GameActivity : AppCompatActivity() {
                 // Increase points counter and update points TextView
                 points += tmpPoints
 
-                Handler().postDelayed({
+                Handler(Looper.getMainLooper()).postDelayed({
                     findViewById<TextView>(R.id.tvPoints).text = points.toString()
 
                     // Display message
@@ -421,8 +426,8 @@ class GameActivity : AppCompatActivity() {
                     // Fill the array again with random values
                     fillArray()
 
-                    // Start timer with new value
-                    levelCountDownTimer.start()
+                    // Start the current level timer
+                    startLevelTimer()
 
                     // Display message
                     Toast.makeText(
@@ -442,15 +447,18 @@ class GameActivity : AppCompatActivity() {
                 // Set lost variable to true, prevents further GridView touch actions
                 lost = true
 
-                Handler().postDelayed({
+                Handler(Looper.getMainLooper()).postDelayed({
                     // Clear the painted positions on the GridView Adapter
-                    itemGVAdapter.clearSelectedPositions()
+                    //itemGVAdapter.clearSelectedPositions()
 
                     // Notify that data has been change in the adapter class
-                    itemGVAdapter.notifyDataSetChanged()
+                    //itemGVAdapter.notifyDataSetChanged()
 
                     // Cancel level timer
                     levelCountDownTimer.cancel()
+
+                    // Display loss dialog
+                    displayLossAlertDialog()
 
                     // Display invalid answer message
                     Log.i(TAG, "swipedLine: $swipedLine")
@@ -523,7 +531,7 @@ class GameActivity : AppCompatActivity() {
                 // Increase points counter and update points TextView
                 points += tmpPoints
 
-                Handler().postDelayed({
+                Handler(Looper.getMainLooper()).postDelayed({
                     findViewById<TextView>(R.id.tvPoints).text = points.toString()
 
                     // Display message
@@ -537,8 +545,8 @@ class GameActivity : AppCompatActivity() {
                     // Fill the array again with random values
                     fillArray()
 
-                    // Start timer with new value
-                    levelCountDownTimer.start()
+                    // Start the current level timer
+                    startLevelTimer()
 
                     // Display message
                     Toast.makeText(
@@ -557,15 +565,18 @@ class GameActivity : AppCompatActivity() {
                 // Set lost variable to true, prevents further GridView touch actions
                 lost = true
 
-                Handler().postDelayed({
+                Handler(Looper.getMainLooper()).postDelayed({
                     // Clear the painted positions on the GridView Adapter
-                    itemGVAdapter.clearSelectedPositions()
+                    //itemGVAdapter.clearSelectedPositions()
 
                     // Notify that data has been change in the adapter class
-                    itemGVAdapter.notifyDataSetChanged()
+                    //itemGVAdapter.notifyDataSetChanged()
 
                     // Cancel level timer
                     levelCountDownTimer.cancel()
+
+                    // Display loss dialog
+                    displayLossAlertDialog()
 
                     // Display invalid answer message
                     Log.i(TAG, "swipedColumn: $swipedColumn")
@@ -751,6 +762,41 @@ class GameActivity : AppCompatActivity() {
             '*','/' -> true
             else -> false
         }
+    }
+
+    // ===================================================
+    //                Loss Alert Dialog
+    // ===================================================
+    private fun displayLossAlertDialog() {
+        alertDialog = AlertDialog.Builder(this)
+            .setMessage("You lost")
+            .setPositiveButton("Ok",null).create()
+
+        alertDialog.setOnShowListener {
+            // Initialize button
+            buttonLossOk = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE)
+
+            buttonLossOk.setOnClickListener {
+                alertLossCountDownTimer
+            }
+
+            startLossTimer()
+        }
+
+        alertDialog.show()
+    }
+
+    private fun startLossTimer() {
+        alertLossCountDownTimer = object : CountDownTimer(5000,1000) {
+            @SuppressLint("SetTextI18n")
+            override fun onTick(millisUntilFinished : Long) {
+                buttonLossOk.text = "Ok (${millisUntilFinished / 1000 + 1})"
+            }
+
+            override fun onFinish() {
+                alertDialog.dismiss()
+            }
+        }.start()
     }
 
     // ===================================================
