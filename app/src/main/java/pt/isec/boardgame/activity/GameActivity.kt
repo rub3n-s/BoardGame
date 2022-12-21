@@ -3,6 +3,7 @@ package pt.isec.boardgame.activity
 import android.annotation.SuppressLint
 import android.content.ContentValues.TAG
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -12,7 +13,11 @@ import android.os.Looper
 import android.util.Log
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
-import android.widget.*
+import android.view.View
+import android.widget.Button
+import android.widget.GridView
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GestureDetectorCompat
@@ -21,7 +26,6 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import pt.isec.boardgame.MainActivity
 import pt.isec.boardgame.R
 import pt.isec.boardgame.adapter.GridViewAdapter
 import pt.isec.boardgame.databinding.ActivityGameBinding
@@ -29,6 +33,7 @@ import pt.isec.boardgame.model.PlayerModel
 import java.io.File
 import kotlin.math.abs
 import kotlin.random.Random
+
 
 //  SHA1: 37:46:E1:CC:7C:AA:AD:2B:AA:6A:AD:F3:18:AB:01:C9:81:7C:A1:8F
 
@@ -77,6 +82,8 @@ class GameActivity : AppCompatActivity() {
     private var minCorrectExpressions = 0
     private var correctExpressions = 0
     private var lost = false
+    private var wrongAnswer = false
+    private var currentLevelPenalty = 0
 
     // GridView Data
     private var itemsArray : ArrayList<Any> = ArrayList()
@@ -157,10 +164,18 @@ class GameActivity : AppCompatActivity() {
         //for (i in 1..5) addDataToFirestore(i)
     }
 
-    // Minimize this activity instead of going back so PlayerActivity
-    @Deprecated("Deprecated in Java", ReplaceWith("moveTaskToBack(true)"))
     override fun onBackPressed() {
-        moveTaskToBack(true)
+        AlertDialog.Builder(this)
+            .setTitle("Really Exit?")
+            .setMessage("Are you sure you want to exit?")
+            .setNegativeButton("No", null)
+            .setPositiveButton("Yes", object : DialogInterface.OnClickListener {
+                override fun onClick(dialog: DialogInterface?, which: Int) {
+                    // Stop level limit timer
+                    if (levelTimerRunning) levelCountDownTimer.cancel()
+                    finish()
+                }
+            }).create().show()
     }
 
     private fun nextLevel() {
@@ -179,6 +194,7 @@ class GameActivity : AppCompatActivity() {
                 bonus = 3000
                 operators.add('+')
                 minCorrectExpressions = 5
+                currentLevelPenalty = 5
             }
             2 -> {
                 minInterval = 0
@@ -188,6 +204,7 @@ class GameActivity : AppCompatActivity() {
                 bonus = 5000
                 operators.add('-')
                 minCorrectExpressions = 4
+                currentLevelPenalty = 4
             }
             3 -> {
                 minInterval = 0
@@ -197,6 +214,7 @@ class GameActivity : AppCompatActivity() {
                 bonus = 7000
                 operators.add('*')
                 minCorrectExpressions = 3
+                currentLevelPenalty = 3
             }
             4 -> {
                 minInterval = 0
@@ -206,6 +224,7 @@ class GameActivity : AppCompatActivity() {
                 bonus = 10000
                 operators.add('/')
                 minCorrectExpressions = 2
+                currentLevelPenalty = 2
             }
         }
 
@@ -223,6 +242,11 @@ class GameActivity : AppCompatActivity() {
         val imgFile = File(player.imagePath)
         if(imgFile.exists())
             binding.gameUserImage.setImageBitmap(BitmapFactory.decodeFile(imgFile.absolutePath))
+    }
+
+    private fun removePoints() {
+        points -= currentLevelPenalty
+        if (points < 0) points = 0
     }
 
     private fun fillArray() {
@@ -309,8 +333,7 @@ class GameActivity : AppCompatActivity() {
     //              GridView Gesture Listener
     // ==================================================
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        // Call onTouchEvent
-        detector.onTouchEvent(event!!)
+        detector.onTouchEvent(event!!)  // Call onTouchEvent
         return super.onTouchEvent(event)
     }
 
@@ -454,21 +477,23 @@ class GameActivity : AppCompatActivity() {
                 // Notify that data has been change in the adapter class
                 itemGVAdapter.notifyDataSetChanged()
 
-                // Set lost variable to true, prevents further GridView touch actions
-                lost = true
-
                 Handler(Looper.getMainLooper()).postDelayed({
                     // Clear the painted positions on the GridView Adapter
-                    //itemGVAdapter.clearSelectedPositions()
+                    itemGVAdapter.clearSelectedPositions()
 
                     // Notify that data has been change in the adapter class
-                    //itemGVAdapter.notifyDataSetChanged()
+                    itemGVAdapter.notifyDataSetChanged()
+
+                    // Set wrong answer to distinguish from a loss
+                    wrongAnswer = true
 
                     // Cancel level timer
                     levelCountDownTimer.cancel()
 
-                    // Display loss dialog
-                    displayLossAlertDialog()
+                    // Display wrong expression dialog
+                    val title = "Wrong Expression"
+                    val alertMessage = "Restarting Level $level\n"
+                    displayLossAlertDialog(title, alertMessage)
 
                     // Display invalid answer message
                     Log.i(TAG, "swipedLine: $swipedLine")
@@ -572,21 +597,23 @@ class GameActivity : AppCompatActivity() {
                 // Notify that data has been change in the adapter class
                 itemGVAdapter.notifyDataSetChanged()
 
-                // Set lost variable to true, prevents further GridView touch actions
-                lost = true
-
                 Handler(Looper.getMainLooper()).postDelayed({
                     // Clear the painted positions on the GridView Adapter
-                    //itemGVAdapter.clearSelectedPositions()
+                    itemGVAdapter.clearSelectedPositions()
 
                     // Notify that data has been change in the adapter class
-                    //itemGVAdapter.notifyDataSetChanged()
+                    itemGVAdapter.notifyDataSetChanged()
+
+                    // Set wrong answer to distinguish from a loss
+                    wrongAnswer = true
 
                     // Cancel level timer
                     levelCountDownTimer.cancel()
 
-                    // Display loss dialog
-                    displayLossAlertDialog()
+                    // Display wrong expression dialog
+                    val title = "Wrong Expression"
+                    val alertMessage = "Restarting Level $level\n"
+                    displayLossAlertDialog(title, alertMessage)
 
                     // Display invalid answer message
                     Log.i(TAG, "swipedColumn: $swipedColumn")
@@ -720,14 +747,12 @@ class GameActivity : AppCompatActivity() {
     }
 
     // ===================================================
-    //                Loss Alert Dialog
+    //                Loss/Wrong Answer Alert Dialog
     // ===================================================
-    private fun displayLossAlertDialog() {
+    private fun displayLossAlertDialog(title : String, message : String) {
         alertDialog = AlertDialog.Builder(this)
-            .setTitle("You Lost")
-            .setMessage("Level $level\n" +
-                    "At least $minCorrectExpressions right expressions\n" +
-                    "You have $correctExpressions right expressions")
+            .setTitle(title)
+            .setMessage(message)
             .setPositiveButton("Ok",null).create()
 
         alertDialog.setOnShowListener {
@@ -753,8 +778,22 @@ class GameActivity : AppCompatActivity() {
             override fun onFinish() {
                 alertDialog.dismiss()
 
-                // Finish this activity (Go's back to MainActivity)
-                finish()
+                if (lost)
+                    // Finish this activity (Go's back to MainActivity)
+                    finish()
+                else {
+                    // Add the penalty for the wrong answer
+                    removePoints()
+
+                    // If its a wrong answer, restart level
+                    defineValues()
+
+                    // Start the level CountDownTimer again
+                    startLevelTimer()
+
+                    // Reset the wrong answer var
+                    wrongAnswer = false
+                }
             }
         }.start()
     }
@@ -829,16 +868,23 @@ class GameActivity : AppCompatActivity() {
                 binding.tvTimeLeft.text = "0"
                 levelTimerRunning = false
 
-                // If the client don't get the minimum right expressions, go back go level 1
-                if (correctExpressions < minCorrectExpressions) {
-                    lost = true
-                    displayLossAlertDialog()
-                } else {
-                    // Set the new level values
-                    nextLevel()
+                // The conditions inside are only for passing to the next level and if the player lost
+                if (!wrongAnswer) {
+                    // If the client don't get the minimum right expressions, go back go level 1
+                    if (correctExpressions < minCorrectExpressions) {
+                        lost = true
+                        val title = "You Lost"
+                        val message = "Level $level\n" +
+                                "At least $minCorrectExpressions right expressions\n" +
+                                "You have $correctExpressions right expressions"
+                        displayLossAlertDialog(title,message)
+                    } else {
+                        // Set the new level values
+                        nextLevel()
 
-                    // Display Transition Alert
-                    displayAlertDialog()
+                        // Display Transition Alert
+                        displayAlertDialog()
+                    }
                 }
             }
         }.start()
