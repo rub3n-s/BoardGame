@@ -1,47 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".PlayerActivity">
+    tools:context=".activity.PlayerActivity"
+    android:gravity="center"
+    android:orientation="vertical">
+
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/userImage"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:src="@drawable/user"/>
 
     <TextView
-        android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="50dp"
-        android:layout_marginBottom="30dp"
-        android:text="@string/name"
-        android:textSize="32sp"
-        app:layout_constraintBottom_toTopOf="@+id/etPlayerName"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:text="@string/profile_info"
+        android:layout_margin="10dp"
+        android:textStyle="bold"
+        android:textSize="22sp"/>
 
-    <Button
-        android:id="@+id/btnConfirm"
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
-        android:text="@string/confirm"
-        android:textSize="30sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline4" />
+        android:text="@string/user_data"
+        android:layout_margin="10dp"
+        android:textSize="16sp"/>
 
-    <EditText
-        android:id="@+id/etPlayerName"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="@string/name_hint"
-        android:inputType="textPersonName"
-        app:layout_constraintBottom_toTopOf="@+id/guideline4"
-        app:layout_constraintStart_toStartOf="@+id/textView" />
+        android:gravity="center"
+        android:orientation="vertical"
+        android:layout_margin="20dp">
+        <EditText
+            android:id="@+id/etPlayerName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="@string/name_hint"
+            android:importantForAutofill="no"
+            android:inputType="textPersonName"
+            android:minHeight="48dp"
+            android:textColorHint="#757575"
+            android:layout_marginTop="20dp"/>
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent=".5" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <Button
+            android:id="@+id/btnConfirm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="70dp"
+            android:text="@string/confirm"
+            android:textSize="20sp"/>
+    </LinearLayout>
+
+
+</LinearLayout>

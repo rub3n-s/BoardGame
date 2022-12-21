@@ -1,4 +1,4 @@
-package pt.isec.boardgame
+package pt.isec.boardgame.adapter
 
 import android.content.Context
 import android.graphics.Color
@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
+import pt.isec.boardgame.R
 
 
 internal class GridViewAdapter(

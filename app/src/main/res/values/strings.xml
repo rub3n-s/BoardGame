@@ -11,4 +11,6 @@
     <string name="game_points">Points:</string>
     <string name="game_level">Level:</string>
     <string name="game_end">End Game</string>
+    <string name="profile_info">Profile Info</string>
+    <string name="user_data">Please set your Name and Image</string>
 </resources>

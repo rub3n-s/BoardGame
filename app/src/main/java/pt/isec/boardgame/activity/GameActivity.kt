@@ -1,9 +1,10 @@
-package pt.isec.boardgame
+package pt.isec.boardgame.activity
 
 import android.annotation.SuppressLint
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
@@ -11,10 +12,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
-import android.widget.Button
-import android.widget.GridView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GestureDetectorCompat
@@ -23,6 +21,12 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import pt.isec.boardgame.MainActivity
+import pt.isec.boardgame.R
+import pt.isec.boardgame.adapter.GridViewAdapter
+import pt.isec.boardgame.databinding.ActivityGameBinding
+import pt.isec.boardgame.model.PlayerModel
+import java.io.File
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -33,7 +37,10 @@ class GameActivity : AppCompatActivity() {
         private const val SWIPE_THRESHOLD = 100
         private const val SWIPE_VELOCITY_THRESHOLD = 100
 
-        private var PLAYER_NAME : String = ""
+        private lateinit var player : PlayerModel
+        //private lateinit var PLAYER_NAME : String
+        //private lateinit var PLAYER_IMG : String
+
         private const val COLUMNS = 5
         private const val LINES = 5
         private const val START_TIME_IN_MILLIS : Long = 5000
@@ -48,14 +55,15 @@ class GameActivity : AppCompatActivity() {
             }
         } */
 
-        fun getClientModeIntent(context : Context, playerName : String) : Intent {
-            PLAYER_NAME = playerName    // Set the player's name
-            return Intent(context,GameActivity::class.java).apply {
+        fun getClientModeIntent(context : Context, player : PlayerModel) : Intent {
+            this.player = player    // Set the player's name
+            return Intent(context, GameActivity::class.java).apply {
                 putExtra("mode", CLIENT_MODE)
             }
         }
     }
 
+    private lateinit var binding : ActivityGameBinding
     private lateinit var auth: FirebaseAuth
 
     private var random = Random(123456789L)
@@ -66,8 +74,8 @@ class GameActivity : AppCompatActivity() {
     private var level = 1
     private var points = 0
     private var bonus : Long = 0
-    private var minRightExpressions = 0
-    private var rightExpressions = 0
+    private var minCorrectExpressions = 0
+    private var correctExpressions = 0
     private var lost = false
 
     // GridView Data
@@ -103,7 +111,9 @@ class GameActivity : AppCompatActivity() {
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_game)
+
+        binding = ActivityGameBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         auth = Firebase.auth
 
@@ -124,7 +134,7 @@ class GameActivity : AppCompatActivity() {
         start = System.currentTimeMillis()
 
         // Lister for End Game Button click
-        findViewById<Button>(R.id.btnEndGame).setOnClickListener {
+        binding.btnEndGame.setOnClickListener {
             totalTime = totalTimeCounter()
 
             // Stop level limit timer
@@ -133,11 +143,8 @@ class GameActivity : AppCompatActivity() {
             //  Firebase update
             updateTop5()
 
-            // Finish this activity
+            // Finish this activity (Go's back to MainActivity)
             finish()
-
-            // Start main activity (Main Activity)
-            startActivity(Intent(this,MainActivity::class.java))
         }
 
         // Start the first level timer
@@ -167,11 +174,11 @@ class GameActivity : AppCompatActivity() {
             1 -> {
                 minInterval = 0
                 maxInterval = 9
-                levelSeconds = 70000
-                //levelSeconds = 10000
+                //levelSeconds = 70000
+                levelSeconds = 10000
                 bonus = 3000
                 operators.add('+')
-                minRightExpressions = 5
+                minCorrectExpressions = 5
             }
             2 -> {
                 minInterval = 0
@@ -180,7 +187,7 @@ class GameActivity : AppCompatActivity() {
                 levelSeconds = 20000
                 bonus = 5000
                 operators.add('-')
-                minRightExpressions = 4
+                minCorrectExpressions = 4
             }
             3 -> {
                 minInterval = 0
@@ -189,7 +196,7 @@ class GameActivity : AppCompatActivity() {
                 levelSeconds = 20000
                 bonus = 7000
                 operators.add('*')
-                minRightExpressions = 3
+                minCorrectExpressions = 3
             }
             4 -> {
                 minInterval = 0
@@ -198,7 +205,7 @@ class GameActivity : AppCompatActivity() {
                 levelSeconds = 20000
                 bonus = 10000
                 operators.add('/')
-                minRightExpressions = 2
+                minCorrectExpressions = 2
             }
         }
 
@@ -209,10 +216,13 @@ class GameActivity : AppCompatActivity() {
         fillArray()
 
         // Display data in TextViews
-        findViewById<TextView>(R.id.tvTimeLeft).text = ""
-        findViewById<TextView>(R.id.tvPlayerName).text = PLAYER_NAME
-        findViewById<TextView>(R.id.tvPoints).text = points.toString()
-        findViewById<TextView>(R.id.tvLevel).text = level.toString()
+        binding.tvTimeLeft.text = ""
+        binding.tvPlayerName.text = player.name
+        binding.tvPoints.text = points.toString()
+        binding.tvLevel.text = level.toString()
+        val imgFile = File(player.imagePath)
+        if(imgFile.exists())
+            binding.gameUserImage.setImageBitmap(BitmapFactory.decodeFile(imgFile.absolutePath))
     }
 
     private fun fillArray() {
@@ -407,13 +417,13 @@ class GameActivity : AppCompatActivity() {
                 if (levelTimeLeftInMillis > levelSeconds) levelTimeLeftInMillis = levelSeconds
 
                 // Increase right answers
-                rightExpressions++
+                correctExpressions++
 
                 // Increase points counter and update points TextView
                 points += tmpPoints
 
                 Handler(Looper.getMainLooper()).postDelayed({
-                    findViewById<TextView>(R.id.tvPoints).text = points.toString()
+                    binding.tvPoints.text = points.toString()
 
                     // Display message
                     Log.i(TAG, "swipedLine: $swipedLine")
@@ -526,13 +536,13 @@ class GameActivity : AppCompatActivity() {
                 if (levelTimeLeftInMillis > levelSeconds) levelTimeLeftInMillis = levelSeconds
 
                 // Increase right answers
-                rightExpressions++
+                correctExpressions++
 
                 // Increase points counter and update points TextView
                 points += tmpPoints
 
                 Handler(Looper.getMainLooper()).postDelayed({
-                    findViewById<TextView>(R.id.tvPoints).text = points.toString()
+                    binding.tvPoints.text = points.toString()
 
                     // Display message
                     Log.i(TAG, "swipedColumn: $swipedColumn")
@@ -593,61 +603,6 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-    /*private fun recalcLineValues() {
-        val tmpArray : ArrayList<Any> = ArrayList()
-        var counter = 0
-        linesValues.clear()
-        for (i in 0 until LINES) {
-            for (j in 0 until COLUMNS) {
-                tmpArray.add(itemsArray[counter])
-                counter++
-            }
-            // Calculate line
-            if (i == 1 || i == 3)
-                linesValues.add(-1.0f)
-            else
-                linesValues.add(calculate(tmpArray))
-            tmpArray.clear()
-        }
-
-        // Insert new data into GridView
-        itemGVAdapter = GridViewAdapter(itemsArray,this@GameActivity)
-
-        // Set adapter to GridView
-        itemsGV.adapter = itemGVAdapter
-    }
-
-    private fun recalcColumnValues() {
-        val tmpArray : ArrayList<Any> = ArrayList()
-        var column = 0
-        var counter = 0
-        columnsValues.clear()
-        while (column < 5) {
-            for (i in 0 until LINES) {
-                for (j in 0 until COLUMNS) {
-                    if (j == column) {
-                        tmpArray.add(itemsArray[counter])
-                    }
-                    counter++
-                }
-            }
-            // Calculate column
-            if (column == 1 || column == 3)
-                columnsValues.add(-1.0f)
-            else
-                columnsValues.add(calculate(tmpArray))
-            tmpArray.clear()
-            column++
-            counter = 0
-        }
-
-        // Insert new data into GridView
-        itemGVAdapter = GridViewAdapter(itemsArray,this@GameActivity)
-
-        // Set adapter to GridView
-        itemsGV.adapter = itemGVAdapter
-    } */
-
     private fun getPoints(value: Float) : Int {
         // Create a tmp array
         var descendingValues : ArrayList<Float> = ArrayList()
@@ -706,7 +661,7 @@ class GameActivity : AppCompatActivity() {
         val op1Priority = hasPriority(op1)
         val op2Priority = hasPriority(op2)
 
-        // Order doesnt matter
+        // Order doesn't matter
         if (op1Priority && op2Priority) {
             when (op1) {
                 '*' -> calc = (array[0] as Int * array[2] as Int).toFloat()
@@ -769,16 +724,18 @@ class GameActivity : AppCompatActivity() {
     // ===================================================
     private fun displayLossAlertDialog() {
         alertDialog = AlertDialog.Builder(this)
-            .setMessage("You lost")
+            .setTitle("You Lost")
+            .setMessage("Level $level\n" +
+                    "At least $minCorrectExpressions right expressions\n" +
+                    "You have $correctExpressions right expressions")
             .setPositiveButton("Ok",null).create()
 
         alertDialog.setOnShowListener {
             // Initialize button
             buttonLossOk = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE)
 
-            buttonLossOk.setOnClickListener {
-                alertLossCountDownTimer
-            }
+            // Stop the CountDownTimer
+            buttonLossOk.setOnClickListener { alertLossCountDownTimer.onFinish() }
 
             startLossTimer()
         }
@@ -795,6 +752,9 @@ class GameActivity : AppCompatActivity() {
 
             override fun onFinish() {
                 alertDialog.dismiss()
+
+                // Finish this activity (Go's back to MainActivity)
+                finish()
             }
         }.start()
     }
@@ -866,13 +826,13 @@ class GameActivity : AppCompatActivity() {
             }
 
             override fun onFinish() {
-                findViewById<TextView>(R.id.tvTimeLeft).text = "0"
+                binding.tvTimeLeft.text = "0"
                 levelTimerRunning = false
 
                 // If the client don't get the minimum right expressions, go back go level 1
-                if (rightExpressions < minRightExpressions) {
-                    level = 1
-                    defineValues()
+                if (correctExpressions < minCorrectExpressions) {
+                    lost = true
+                    displayLossAlertDialog()
                 } else {
                     // Set the new level values
                     nextLevel()
@@ -900,23 +860,24 @@ class GameActivity : AppCompatActivity() {
         val dataSets = ArrayList<PlayerModel>()
         db.collection("Top5").get().addOnSuccessListener { documents ->
             for (document in documents) {
+                val imageUrl = document["image"].toString()
                 val name = document["player"].toString()
                 val points = document["points"] as Long
                 val level = document["level"] as Long
                 val time = document["time"] as Long
 
-                val player = PlayerModel(name,points.toInt(),level.toInt(),time)
+                val player = PlayerModel(imageUrl,name,points.toInt(),level.toInt(),time)
                 dataSets.add(player)
                 Log.i(TAG, "updateTop5: name=$name,points=$points,level=$level,time=$time")
             }
-            //call a function to work with your array
+            // Call a function to work with the players array
             orderTop5(dataSets)
         }
     }
 
     private fun orderTop5(players : ArrayList<PlayerModel>) {
         // Add this player to the array
-        players.add(PlayerModel(PLAYER_NAME,points,level,totalTime))
+        players.add(PlayerModel(player.imagePath,player.name,points,level,totalTime))
 
         // Sort Descending from higher points to lower
         players.sortByDescending { playerModel -> playerModel.points }
@@ -934,6 +895,7 @@ class GameActivity : AppCompatActivity() {
     private fun addDataToFirestore(position : Int) {
         val db = Firebase.firestore
         val scores = hashMapOf(
+            "image" to "",
             "player" to "",
             "level" to 0,
             "points" to 0,
@@ -954,10 +916,12 @@ class GameActivity : AppCompatActivity() {
         db.runTransaction { transaction ->
             val doc = transaction.get(v)
             if (doc.exists()) {
+                val image = player.imagePath
                 val name = player.name
                 val points = player.points
                 val level = player.level
                 val time = player.time
+                transaction.update(v, "image", image)
                 transaction.update(v, "player", name)
                 transaction.update(v, "points", points)
                 transaction.update(v, "level", level)

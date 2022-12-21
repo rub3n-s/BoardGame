@@ -1,7 +1,6 @@
-package pt.isec.boardgame
+package pt.isec.boardgame.activity
 
 import android.annotation.SuppressLint
-import android.content.ContentValues
 import android.content.ContentValues.TAG
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -9,6 +8,8 @@ import android.util.Log
 import android.widget.TextView
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import pt.isec.boardgame.R
+import pt.isec.boardgame.model.PlayerModel
 
 class Top5Activity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,12 +25,13 @@ class Top5Activity : AppCompatActivity() {
         val dataSets = ArrayList<PlayerModel>()
         db.collection("Top5").get().addOnSuccessListener { documents ->
             for (document in documents) {
+                val imageUrl = document["image"].toString()
                 val name = document["player"].toString()
                 val points = document["points"] as Long
                 val level = document["level"] as Long
                 val time = document["time"] as Long
 
-                val player = PlayerModel(name,points.toInt(),level.toInt(),time)
+                val player = PlayerModel(imageUrl,name,points.toInt(),level.toInt(),time)
                 dataSets.add(player)
                 Log.i(TAG, "getDocumentsData: name=$name,points=$points,level=$level,time=$time")
             }

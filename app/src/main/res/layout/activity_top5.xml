@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Top5Activity">
+    tools:context=".activity.Top5Activity">
 
     <TextView
         android:id="@+id/tvTop1"
