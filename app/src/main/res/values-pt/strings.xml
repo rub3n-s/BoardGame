@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Jogo de Tabuleiro</string>
+    <string name="play">Jogar</string>
+    <string name="top5">Top 5</string>
+    <string name="top5_header">Nome de Jogador, Pontos, Tempo Jogado</string>
+    <string name="top5_points">pontos,</string>
+    <string name="leave">Sair</string>
+    <string name="name">Nome</string>
+    <string name="name_hint">Nome de Jogador</string>
+    <string name="confirm">Confirmar</string>
+    <string name="game_seconds">Tempo Restante:</string>
+    <string name="game_player">Jogador:</string>
+    <string name="game_points">Pontos:</string>
+    <string name="game_level">Nível:</string>
+    <string name="game_end">Terminar</string>
+    <string name="profile_info">Informação de Perfil</string>
+    <string name="user_data">Por favor insira o seu Nome e a Fotografia</string>
+</resources>

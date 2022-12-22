@@ -2,6 +2,8 @@
     <string name="app_name">Board Game</string>
     <string name="play">Play</string>
     <string name="top5">Top5</string>
+    <string name="top5_header">Player Name, Points, Time Played</string>
+    <string name="top5_points">points,</string>
     <string name="leave">Leave</string>
     <string name="name">Name</string>
     <string name="name_hint">Player Name</string>

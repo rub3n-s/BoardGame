@@ -2,6 +2,7 @@ package pt.isec.boardgame.activity
 
 import android.annotation.SuppressLint
 import android.content.ContentValues.TAG
+import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -9,12 +10,18 @@ import android.widget.TextView
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import pt.isec.boardgame.R
+import pt.isec.boardgame.databinding.ActivityTop5Binding
 import pt.isec.boardgame.model.PlayerModel
+import java.io.File
 
 class Top5Activity : AppCompatActivity() {
+    private lateinit var binding: ActivityTop5Binding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_top5)
+
+        binding = ActivityTop5Binding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         // Get all documents data from Firestore
         getDocumentsData()
@@ -45,11 +52,41 @@ class Top5Activity : AppCompatActivity() {
         // Fill TextViews with data
         for (i in 0 until players.size) {
             when (i) {
-                0 -> findViewById<TextView>(R.id.tvTop1).text = "1. ${players[i].name}, ${players[i].points} points, ${players[i].time}s"
-                1 -> findViewById<TextView>(R.id.tvTop2).text = "2. ${players[i].name}, ${players[i].points} points, ${players[i].time}s"
-                2 -> findViewById<TextView>(R.id.tvTop3).text = "3. ${players[i].name}, ${players[i].points} points, ${players[i].time}s"
-                3 -> findViewById<TextView>(R.id.tvTop4).text = "4. ${players[i].name}, ${players[i].points} points, ${players[i].time}s"
-                4 -> findViewById<TextView>(R.id.tvTop5).text = "5. ${players[i].name}, ${players[i].points} points, ${players[i].time}s"
+                0 -> {
+                    binding.tvTop1Name.text = players[i].name
+                    val imgFile = File(players[i].imagePath)
+                    if(imgFile.exists()) binding.ivTop1.setImageBitmap(BitmapFactory.decodeFile(imgFile.absolutePath))
+                    binding.tvTop1Points.text = players[i].points.toString()
+                    binding.tvTop1Time.text = players[i].time.toString()
+                }
+                1 -> {
+                    binding.tvTop2Name.text = players[i].name
+                    val imgFile = File(players[i].imagePath)
+                    if(imgFile.exists()) binding.ivTop2.setImageBitmap(BitmapFactory.decodeFile(imgFile.absolutePath))
+                    binding.tvTop2Points.text = players[i].points.toString()
+                    binding.tvTop2Time.text = players[i].time.toString()
+                }
+                2 -> {
+                    binding.tvTop3Name.text = players[i].name
+                    val imgFile = File(players[i].imagePath)
+                    if(imgFile.exists()) binding.ivTop3.setImageBitmap(BitmapFactory.decodeFile(imgFile.absolutePath))
+                    binding.tvTop3Points.text = players[i].points.toString()
+                    binding.tvTop3Time.text = players[i].time.toString()
+                }
+                3 -> {
+                    binding.tvTop4Name.text = players[i].name
+                    val imgFile = File(players[i].imagePath)
+                    if(imgFile.exists()) binding.ivTop4.setImageBitmap(BitmapFactory.decodeFile(imgFile.absolutePath))
+                    binding.tvTop4Points.text = players[i].points.toString()
+                    binding.tvTop4Time.text = players[i].time.toString()
+                }
+                4 -> {
+                    binding.tvTop5Name.text = players[i].name
+                    val imgFile = File(players[i].imagePath)
+                    if(imgFile.exists()) binding.ivTop5.setImageBitmap(BitmapFactory.decodeFile(imgFile.absolutePath))
+                    binding.tvTop5Points.text = players[i].points.toString()
+                    binding.tvTop5Time.text = players[i].time.toString()
+                }
             }
         }
     }

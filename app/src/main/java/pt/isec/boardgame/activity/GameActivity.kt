@@ -5,6 +5,7 @@ import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -13,7 +14,6 @@ import android.os.Looper
 import android.util.Log
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
-import android.view.View
 import android.widget.Button
 import android.widget.GridView
 import android.widget.TextView
@@ -183,6 +183,17 @@ class GameActivity : AppCompatActivity() {
         defineValues()
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+
+        // Checks the orientation of the screen
+        if (newConfig.orientation === Configuration.ORIENTATION_LANDSCAPE) {
+            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show()
+        } else if (newConfig.orientation === Configuration.ORIENTATION_PORTRAIT) {
+            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     @SuppressLint("SetTextI18n")
     private fun defineValues() {
         when (level) {
@@ -190,7 +201,7 @@ class GameActivity : AppCompatActivity() {
                 minInterval = 0
                 maxInterval = 9
                 //levelSeconds = 70000
-                levelSeconds = 10000
+                levelSeconds = 40000
                 bonus = 3000
                 operators.add('+')
                 minCorrectExpressions = 5

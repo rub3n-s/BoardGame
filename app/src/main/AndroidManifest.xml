@@ -18,15 +18,9 @@
         android:theme="@style/Theme.BoardGame"
         tools:targetApi="31">
         <activity
-            android:name=".activity.ConfigPlayerProfileActivity"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
             android:name=".activity.GameActivity"
-            android:exported="false">
+            android:exported="false"
+            android:configChanges="screenSize|screenLayout|keyboardHidden">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
