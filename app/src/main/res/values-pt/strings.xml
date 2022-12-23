@@ -16,4 +16,7 @@
     <string name="game_end">Terminar</string>
     <string name="profile_info">Informação de Perfil</string>
     <string name="user_data">Por favor insira o seu Nome e a Fotografia</string>
+    <string name="mn_credits">Creditos</string>
+    <string name="mn_profile">Perfil</string>
+    <string name="pw">Trabalho Prático AMov - Kotlin</string>
 </resources>

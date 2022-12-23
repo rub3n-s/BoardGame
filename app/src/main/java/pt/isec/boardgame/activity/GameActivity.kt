@@ -7,16 +7,12 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.BitmapFactory
-import android.os.Bundle
-import android.os.CountDownTimer
-import android.os.Handler
-import android.os.Looper
+import android.os.*
 import android.util.Log
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
 import android.widget.Button
 import android.widget.GridView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -154,6 +150,32 @@ class GameActivity : AppCompatActivity() {
             finish()
         }
 
+        // Recover data when occurs a orientation change
+        if (savedInstanceState != null) {
+            val tmp = savedInstanceState.getStringArrayList("itemsArray")
+            itemsArray = tmp?.let { stringToAny(it) }!!
+
+            // Insert new data into GridView
+            itemGVAdapter = GridViewAdapter(itemsArray,this@GameActivity)
+
+            // Set adapter to GridView
+            itemsGV.adapter = itemGVAdapter
+
+            // TODO
+            //  Calc lines and cols
+
+            levelTimeLeftInMillis = savedInstanceState.getLong("levelTime")
+            binding.tvTimeLeft.text = levelTimeLeftInMillis.toString()
+
+            points = savedInstanceState.getInt("points")
+            binding.tvPoints.text = points.toString()
+
+            level = savedInstanceState.getInt("level")
+            binding.tvLevel.text = level.toString()
+
+            correctExpressions = savedInstanceState.getInt("expressions")
+        }
+
         // Start the first level timer
         startLevelTimer()
 
@@ -178,13 +200,9 @@ class GameActivity : AppCompatActivity() {
             }).create().show()
     }
 
-    private fun nextLevel() {
-        level++
-        defineValues()
-    }
-
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        setContentView(R.layout.activity_game);
 
         // Checks the orientation of the screen
         if (newConfig.orientation === Configuration.ORIENTATION_LANDSCAPE) {
@@ -192,6 +210,65 @@ class GameActivity : AppCompatActivity() {
         } else if (newConfig.orientation === Configuration.ORIENTATION_PORTRAIT) {
             Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        val tmp =convertToStringArray()
+        outState.putStringArrayList("itemsArray",tmp)
+
+        outState.putBoolean("mTimerRunning",mTimerRunning)
+        outState.putLong("mTimeLeftInMillis",mTimeLeftInMillis)
+
+        outState.putBoolean("timerRunning",levelTimerRunning)
+        outState.putLong("levelTime",levelTimeLeftInMillis)
+
+        outState.putLong("totalTime",totalTime)
+        outState.putLong("startTime",start)
+        outState.putLong("endTime",end)
+
+        outState.putInt("points",points)
+        outState.putInt("level",points)
+        outState.putInt("expressions",correctExpressions)
+    }
+
+    private fun convertToStringArray() : ArrayList<String> {
+        val tmp : ArrayList<String> = ArrayList()
+        for (i in 0 until itemsArray.size)
+            tmp.add(itemsArray[i].toString())
+        return tmp
+    }
+
+    private fun stringToAny(array : ArrayList<String>) : ArrayList<Any> {
+        val tmp : ArrayList<Any> = ArrayList()
+        for (i in 0 until array.size)
+            if (isChar(array[i]) != ' ')
+                tmp.add(isChar(array[i]))
+            else if (isInt(array[i]))
+                tmp.add(array[i].toInt())
+            else
+                tmp.add("")
+        return tmp
+    }
+
+    private fun isChar(value: String) : Char {
+        when(value) {
+            "+" -> return '+'
+            "-" -> return '-'
+            "*" -> return '*'
+            "/" -> return '/'
+        }
+        return ' '
+    }
+
+    private fun isInt(value: String) : Boolean {
+        return value.toIntOrNull() != null
+    }
+
+    private fun nextLevel() {
+        level++
+        defineValues()
     }
 
     @SuppressLint("SetTextI18n")
@@ -870,7 +947,7 @@ class GameActivity : AppCompatActivity() {
         levelCountDownTimer = object : CountDownTimer(levelTimeLeftInMillis,1000) {
             @SuppressLint("SetTextI18n")
             override fun onTick(millisUntilFinished : Long) {
-                findViewById<TextView>(R.id.tvTimeLeft).text = "${millisUntilFinished / 1000 + 1}"
+                binding.tvTimeLeft.text = "${millisUntilFinished / 1000 + 1}"
                 levelTimerRunning = true
                 levelTimeLeftInMillis = millisUntilFinished
             }

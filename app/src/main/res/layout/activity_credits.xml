@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".activity.CreditsActivity">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="40dp"
+        android:text="@string/mn_credits"
+        android:textSize="32sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center">
+        <!--======================= Worker 1 =======================-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="50dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="50dp">
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/workerImage1"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/user"
+                android:layout_marginEnd="20dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/tvWorker1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Acácio Coutinho"
+                    android:textSize="25sp"
+                    android:textStyle="bold"
+                    tools:layout_editor_absoluteX="105dp"
+                    tools:layout_editor_absoluteY="166dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="123456789"
+                    android:textSize="20sp"
+                    tools:layout_editor_absoluteX="105dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!--======================= Worker 2 ======================= -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="50dp">
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/workerImage2"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/user"
+                android:layout_marginEnd="20dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Carlos Pinto"
+                    android:textSize="25sp"
+                    android:textStyle="bold"
+                    tools:layout_editor_absoluteX="108dp"
+                    tools:layout_editor_absoluteY="299dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="123456789"
+                    android:textSize="20sp"
+                    tools:layout_editor_absoluteX="108dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!--======================= Worker 3 ======================= -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="50dp">
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/workerImage3"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/user"
+                android:layout_marginEnd="20dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Rúben Santos"
+                    android:textSize="25sp"
+                    android:textStyle="bold"
+                    tools:layout_editor_absoluteX="107dp"
+                    tools:layout_editor_absoluteY="422dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="2019116244"
+                    android:textSize="20sp"
+                    tools:layout_editor_absoluteX="105dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/pw"
+            android:textStyle="bold"
+            android:textSize="25sp"
+            android:layout_margin="20dp"/>
+        <ImageView
+            android:layout_width="240dp"
+            android:layout_height="130dp"
+            android:src="@drawable/isec_logo"
+            android:layout_gravity="center"/>
+    </LinearLayout>
+</LinearLayout>

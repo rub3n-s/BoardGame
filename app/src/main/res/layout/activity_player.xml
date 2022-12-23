@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activity.PlayerActivity"
+    tools:context=".PlayerActivity"
     android:gravity="center"
     android:orientation="vertical">
 
@@ -56,6 +56,4 @@
             android:text="@string/confirm"
             android:textSize="20sp"/>
     </LinearLayout>
-
-
 </LinearLayout>
