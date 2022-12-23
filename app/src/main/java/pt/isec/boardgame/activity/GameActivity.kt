@@ -1006,6 +1006,12 @@ class GameActivity : AppCompatActivity() {
 
                 // The conditions inside are only for passing to the next level and if the player lost
                 if (!wrongAnswer) {
+                    // Disable temporarily screen orientation
+                    requestedOrientation = if(resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
+                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                    else
+                        ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+
                     // If the client don't get the minimum right expressions, go back go level 1
                     if (correctExpressions < minCorrectExpressions) {
                         lost = true
@@ -1018,19 +1024,10 @@ class GameActivity : AppCompatActivity() {
                         // Set the new level values
                         nextLevel()
 
-                        // Disable temporarily screen orientation
-                        requestedOrientation = if(resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
-                            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                        else
-                            ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-
                         // Display Transition Alert
                         displayAlertDialog()
                     }
                 }
-
-                // Enable screen orientation
-                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }
         }.start()
     }
