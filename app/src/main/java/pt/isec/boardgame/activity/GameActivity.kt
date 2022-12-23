@@ -17,7 +17,6 @@ import android.widget.GridView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.browser.trusted.ScreenOrientation
 import androidx.core.view.GestureDetectorCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -192,6 +191,7 @@ class GameActivity : AppCompatActivity() {
         //for (i in 1..5) addDataToFirestore(i)
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         AlertDialog.Builder(this)
             .setTitle("Really Exit?")
@@ -926,7 +926,7 @@ class GameActivity : AppCompatActivity() {
                 }
 
                 // Enable screen orientation
-                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR;
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
             }
         }.start()
     }
