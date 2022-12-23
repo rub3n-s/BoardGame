@@ -5,6 +5,7 @@ import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.BitmapFactory
 import android.os.*
@@ -16,6 +17,7 @@ import android.widget.GridView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.browser.trusted.ScreenOrientation
 import androidx.core.view.GestureDetectorCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -25,7 +27,9 @@ import com.google.firebase.ktx.Firebase
 import pt.isec.boardgame.R
 import pt.isec.boardgame.adapter.GridViewAdapter
 import pt.isec.boardgame.databinding.ActivityGameBinding
+import pt.isec.boardgame.model.GameStateModel
 import pt.isec.boardgame.model.PlayerModel
+import pt.isec.boardgame.utils.*
 import java.io.File
 import kotlin.math.abs
 import kotlin.random.Random
@@ -39,8 +43,6 @@ class GameActivity : AppCompatActivity() {
         private const val SWIPE_VELOCITY_THRESHOLD = 100
 
         private lateinit var player : PlayerModel
-        //private lateinit var PLAYER_NAME : String
-        //private lateinit var PLAYER_IMG : String
 
         private const val COLUMNS = 5
         private const val LINES = 5
@@ -67,6 +69,7 @@ class GameActivity : AppCompatActivity() {
     private lateinit var binding : ActivityGameBinding
     private lateinit var auth: FirebaseAuth
 
+    // Game Data
     private var random = Random(123456789L)
     private var minInterval = 0
     private var maxInterval = 0
@@ -87,8 +90,8 @@ class GameActivity : AppCompatActivity() {
     private lateinit var itemGVAdapter : GridViewAdapter
     private lateinit var detector: GestureDetectorCompat
 
-    private val linesValues : ArrayList<Float> = ArrayList()
-    private val columnsValues : ArrayList<Float> = ArrayList()
+    private var linesValues : ArrayList<Float> = ArrayList()
+    private var columnsValues : ArrayList<Float> = ArrayList()
 
     // alertDialog CountDownTimer
     private lateinit var alertDialog: AlertDialog
@@ -123,8 +126,40 @@ class GameActivity : AppCompatActivity() {
         // Initialize GridView
         itemsGV = findViewById(R.id.gvItems)
 
-        // Define the initial game values
-        defineValues()
+        // Restore data after orientation change
+        if (savedInstanceState != null) {
+            val gameStateByteArray = savedInstanceState.getByteArray("gameState")
+            val gameState = gameStateByteArray?.let { fromByteArray<GameStateModel>(it) }
+            if (gameState != null) {
+                random = gameState.random
+                operators = gameState.operators
+                itemsArray = gameState.itemsArray
+                player = gameState.player
+                level = gameState.level
+                points = gameState.points
+                correctExpressions = gameState.correctExpressions
+                lost = gameState.lost
+                wrongAnswer = gameState.wrongAnswer
+                linesValues = gameState.linesValues
+                columnsValues = gameState.columnsValues
+                mTimerRunning = gameState.mTimerRunning
+                mTimeLeftInMillis = gameState.mTimeLeftInMillis
+                levelTimerRunning = gameState.levelTimerRunning
+                levelTimeLeftInMillis = gameState.levelTimeLeftInMillis
+                totalTime = gameState.totalTime
+                start = gameState.start
+                end = gameState.end
+
+                // Redefine game values based on the saved state
+                redefineValues()
+            }
+        } else {
+            // Define the initial game values
+            defineValues()
+
+            // Get start time
+            start = System.currentTimeMillis()
+        }
 
         // GridView Gesture Listener
         detector = GestureDetectorCompat(this, MyGestureListener())
@@ -133,8 +168,8 @@ class GameActivity : AppCompatActivity() {
             false
         }
 
-        // Get start time
-        start = System.currentTimeMillis()
+        // Start the first level timer
+        startLevelTimer()
 
         // Lister for End Game Button click
         binding.btnEndGame.setOnClickListener {
@@ -149,35 +184,6 @@ class GameActivity : AppCompatActivity() {
             // Finish this activity (Go's back to MainActivity)
             finish()
         }
-
-        // Recover data when occurs a orientation change
-        if (savedInstanceState != null) {
-            val tmp = savedInstanceState.getStringArrayList("itemsArray")
-            itemsArray = tmp?.let { stringToAny(it) }!!
-
-            // Insert new data into GridView
-            itemGVAdapter = GridViewAdapter(itemsArray,this@GameActivity)
-
-            // Set adapter to GridView
-            itemsGV.adapter = itemGVAdapter
-
-            // TODO
-            //  Calc lines and cols
-
-            levelTimeLeftInMillis = savedInstanceState.getLong("levelTime")
-            binding.tvTimeLeft.text = levelTimeLeftInMillis.toString()
-
-            points = savedInstanceState.getInt("points")
-            binding.tvPoints.text = points.toString()
-
-            level = savedInstanceState.getInt("level")
-            binding.tvLevel.text = level.toString()
-
-            correctExpressions = savedInstanceState.getInt("expressions")
-        }
-
-        // Start the first level timer
-        startLevelTimer()
 
         // Remove all data from Firestore
         //for (i in 1..5) removeDataFromFirestore(i)
@@ -200,70 +206,38 @@ class GameActivity : AppCompatActivity() {
             }).create().show()
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        setContentView(R.layout.activity_game);
-
-        // Checks the orientation of the screen
-        if (newConfig.orientation === Configuration.ORIENTATION_LANDSCAPE) {
-            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show()
-        } else if (newConfig.orientation === Configuration.ORIENTATION_PORTRAIT) {
-            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+        val gameState = GameStateModel(
+            random,
+            operators,
+            itemsArray,
+            player,
+            level,
+            points,
+            correctExpressions,
+            lost,
+            wrongAnswer,
+            linesValues,
+            columnsValues,
+            mTimerRunning,
+            mTimeLeftInMillis,
+            levelTimerRunning,
+            levelTimeLeftInMillis,
+            totalTime,
+            start,
+            end
+        )
 
-        val tmp =convertToStringArray()
-        outState.putStringArrayList("itemsArray",tmp)
+        // Stop the level CountDownTimer
+        levelCountDownTimer.cancel()
 
-        outState.putBoolean("mTimerRunning",mTimerRunning)
-        outState.putLong("mTimeLeftInMillis",mTimeLeftInMillis)
+        // Close the dialog
+        alertDialog.dismiss()
 
-        outState.putBoolean("timerRunning",levelTimerRunning)
-        outState.putLong("levelTime",levelTimeLeftInMillis)
-
-        outState.putLong("totalTime",totalTime)
-        outState.putLong("startTime",start)
-        outState.putLong("endTime",end)
-
-        outState.putInt("points",points)
-        outState.putInt("level",points)
-        outState.putInt("expressions",correctExpressions)
-    }
-
-    private fun convertToStringArray() : ArrayList<String> {
-        val tmp : ArrayList<String> = ArrayList()
-        for (i in 0 until itemsArray.size)
-            tmp.add(itemsArray[i].toString())
-        return tmp
-    }
-
-    private fun stringToAny(array : ArrayList<String>) : ArrayList<Any> {
-        val tmp : ArrayList<Any> = ArrayList()
-        for (i in 0 until array.size)
-            if (isChar(array[i]) != ' ')
-                tmp.add(isChar(array[i]))
-            else if (isInt(array[i]))
-                tmp.add(array[i].toInt())
-            else
-                tmp.add("")
-        return tmp
-    }
-
-    private fun isChar(value: String) : Char {
-        when(value) {
-            "+" -> return '+'
-            "-" -> return '-'
-            "*" -> return '*'
-            "/" -> return '/'
-        }
-        return ' '
-    }
-
-    private fun isInt(value: String) : Boolean {
-        return value.toIntOrNull() != null
+        // Convert object GameState to a Byte Array
+        val gameStateByteArray = gameState.toByteArray()
+        outState.putByteArray("gameState",gameStateByteArray)
     }
 
     private fun nextLevel() {
@@ -278,8 +252,8 @@ class GameActivity : AppCompatActivity() {
                 minInterval = 0
                 maxInterval = 9
                 //levelSeconds = 70000
-                levelSeconds = 40000
-                bonus = 3000
+                levelSeconds = 20000
+                bonus = 2000
                 operators.add('+')
                 minCorrectExpressions = 5
                 currentLevelPenalty = 5
@@ -289,7 +263,7 @@ class GameActivity : AppCompatActivity() {
                 maxInterval = 99
                 //levelSeconds = 60000
                 levelSeconds = 20000
-                bonus = 5000
+                bonus = 3000
                 operators.add('-')
                 minCorrectExpressions = 4
                 currentLevelPenalty = 4
@@ -299,7 +273,7 @@ class GameActivity : AppCompatActivity() {
                 maxInterval = 999
                 //levelSeconds = 50000
                 levelSeconds = 20000
-                bonus = 7000
+                bonus = 4000
                 operators.add('*')
                 minCorrectExpressions = 3
                 currentLevelPenalty = 3
@@ -309,7 +283,7 @@ class GameActivity : AppCompatActivity() {
                 maxInterval = 9999
                 //levelSeconds = 40000
                 levelSeconds = 20000
-                bonus = 10000
+                bonus = 5000
                 operators.add('/')
                 minCorrectExpressions = 2
                 currentLevelPenalty = 2
@@ -324,6 +298,62 @@ class GameActivity : AppCompatActivity() {
 
         // Display data in TextViews
         binding.tvTimeLeft.text = ""
+        binding.tvPlayerName.text = player.name
+        binding.tvPoints.text = points.toString()
+        binding.tvLevel.text = level.toString()
+        val imgFile = File(player.imagePath)
+        if(imgFile.exists())
+            binding.gameUserImage.setImageBitmap(BitmapFactory.decodeFile(imgFile.absolutePath))
+    }
+
+    private fun redefineValues() {
+        when (level) {
+            1 -> {
+                minInterval = 0
+                maxInterval = 9
+                //levelSeconds = 70000
+                levelSeconds = 40000
+                bonus = 3000
+                minCorrectExpressions = 5
+                currentLevelPenalty = 5
+            }
+            2 -> {
+                minInterval = 0
+                maxInterval = 99
+                //levelSeconds = 60000
+                levelSeconds = 20000
+                bonus = 5000
+                minCorrectExpressions = 4
+                currentLevelPenalty = 4
+            }
+            3 -> {
+                minInterval = 0
+                maxInterval = 999
+                //levelSeconds = 50000
+                levelSeconds = 20000
+                bonus = 7000
+                minCorrectExpressions = 3
+                currentLevelPenalty = 3
+            }
+            4 -> {
+                minInterval = 0
+                maxInterval = 9999
+                //levelSeconds = 40000
+                levelSeconds = 20000
+                bonus = 10000
+                minCorrectExpressions = 2
+                currentLevelPenalty = 2
+            }
+        }
+
+        // Insert new data into GridView
+        itemGVAdapter = GridViewAdapter(itemsArray,this@GameActivity)
+
+        // Set adapter to GridView
+        itemsGV.adapter = itemGVAdapter
+
+        // Display data in TextViews
+        binding.tvTimeLeft.text = mTimeLeftInMillis.toString()
         binding.tvPlayerName.text = player.name
         binding.tvPoints.text = points.toString()
         binding.tvLevel.text = level.toString()
@@ -578,6 +608,12 @@ class GameActivity : AppCompatActivity() {
                     // Cancel level timer
                     levelCountDownTimer.cancel()
 
+                    // Disable temporarily screen orientation
+                    requestedOrientation = if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
+                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                    else
+                        ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+
                     // Display wrong expression dialog
                     val title = "Wrong Expression"
                     val alertMessage = "Restarting Level $level\n"
@@ -697,6 +733,12 @@ class GameActivity : AppCompatActivity() {
 
                     // Cancel level timer
                     levelCountDownTimer.cancel()
+
+                    // Disable temporarily screen orientation
+                    requestedOrientation = if(resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
+                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                    else
+                        ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
 
                     // Display wrong expression dialog
                     val title = "Wrong Expression"
@@ -882,6 +924,9 @@ class GameActivity : AppCompatActivity() {
                     // Reset the wrong answer var
                     wrongAnswer = false
                 }
+
+                // Enable screen orientation
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR;
             }
         }.start()
     }
@@ -929,6 +974,9 @@ class GameActivity : AppCompatActivity() {
 
                 // Start the current level timer
                 startLevelTimer()
+
+                // Enable screen orientation
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }
         }.start()
 
@@ -970,10 +1018,19 @@ class GameActivity : AppCompatActivity() {
                         // Set the new level values
                         nextLevel()
 
+                        // Disable temporarily screen orientation
+                        requestedOrientation = if(resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
+                            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                        else
+                            ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+
                         // Display Transition Alert
                         displayAlertDialog()
                     }
                 }
+
+                // Enable screen orientation
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }
         }.start()
     }

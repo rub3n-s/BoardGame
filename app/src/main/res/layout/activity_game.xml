@@ -65,6 +65,7 @@
         android:horizontalSpacing="5dp"
         android:numColumns="5"
         android:verticalSpacing="5dp"
+        android:stretchMode="columnWidth"
         app:layout_constraintBottom_toTopOf="@+id/guideline5"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
