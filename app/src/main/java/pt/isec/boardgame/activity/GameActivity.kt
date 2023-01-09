@@ -233,7 +233,7 @@ class GameActivity : AppCompatActivity() {
         levelCountDownTimer.cancel()
 
         // Close the dialog
-        alertDialog.dismiss()
+        //alertDialog.dismiss()
 
         // Convert object GameState to a Byte Array
         val gameStateByteArray = gameState.toByteArray()
